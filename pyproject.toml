@@ -1,0 +1,20 @@
+[project]
+name = "incontext"
+version = "0.0.6"
+description = "incontext but it's just lists."
+dependencies = [
+	"flask",
+	"pytest",
+	"gunicorn",
+]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["incontext"]
