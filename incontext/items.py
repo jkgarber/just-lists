@@ -6,7 +6,6 @@ from werkzeug.exceptions import abort
 from incontext.auth import login_required
 from incontext.db import get_db
 from incontext.details import get_creator_details
-import os
 
 bp = Blueprint('items', __name__, url_prefix='/items')
 

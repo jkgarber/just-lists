@@ -44,7 +44,7 @@ def create_app(test_config=None):
     from . import details
     app.register_blueprint(details.bp)
     
-#    from . import lists 
-#    app.register_blueprint(lists.bp)
+    from . import lists 
+    app.register_blueprint(lists.bp)
 
     return app
