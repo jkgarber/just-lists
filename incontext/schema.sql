@@ -41,7 +41,7 @@ CREATE TABLE item_detail_relations (
 CREATE TABLE lists (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	creator_id INTEGER NOT NULL,
-	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	name TEXT NOT NULL,
 	FOREIGN KEY (creator_id) REFERENCES users (id)
 );
@@ -50,7 +50,7 @@ CREATE TABLE list_item_relations (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	list_id INTEGER NOT NULL,
 	item_id INTEGER NOT NULL,
-	FOREIGN KEY (list_id) REFERENCES lists (id)
+	FOREIGN KEY (list_id) REFERENCES lists (id),
 	FOREIGN KEY (item_id) REFERENCES items (id)
 );
 
@@ -58,6 +58,6 @@ CREATE TABLE list_detail_relations (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	list_id INTEGER NOT NULL,
 	detail_id INTEGER NOT NULL,
-	FOREIGN KEY (list_id) REFERENCES lists (id)
+	FOREIGN KEY (list_id) REFERENCES lists (id),
 	FOREIGN KEY (detail_id) REFERENCES details (id)
 );
