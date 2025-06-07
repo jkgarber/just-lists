@@ -1,0 +1,63 @@
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS details;
+DROP TABLE IF EXISTS item_detail_relations;
+DROP TABLE IF EXISTS lists;
+DROP TABLE IF EXISTS list_item_relations;
+DROP TABLE IF EXISTS list_detail_relations;
+
+CREATE TABLE users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	username TEXT UNIQUE NOT NULL,
+	password TEXT NOT NULL
+);
+
+CREATE TABLE items (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	creator_id INTEGER NOT NULL,
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	name TEXT NOT NULL,
+	FOREIGN KEY (creator_id) REFERENCES users (id)
+);
+
+CREATE TABLE details (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	creator_id INTEGER NOT NULL,
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	name TEXT NOT NULL,
+	description TEXT,
+	FOREIGN KEY (creator_id) REFERENCES users (id)
+);
+
+CREATE TABLE item_detail_relations (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	item_id INTEGER NOT NULL,
+	detail_id INTEGER NOT NULL,
+	content TEXT,
+	FOREIGN KEY (item_id) REFERENCES items (id)
+	FOREIGN KEY (detail_id) REFERENCES details (id)
+);
+
+CREATE TABLE lists (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	creator_id INTEGER NOT NULL,
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+	name TEXT NOT NULL,
+	FOREIGN KEY (creator_id) REFERENCES users (id)
+);
+
+CREATE TABLE list_item_relations (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	list_id INTEGER NOT NULL,
+	item_id INTEGER NOT NULL,
+	FOREIGN KEY (list_id) REFERENCES lists (id)
+	FOREIGN KEY (item_id) REFERENCES items (id)
+);
+
+CREATE TABLE list_detail_relations (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	list_id INTEGER NOT NULL,
+	detail_id INTEGER NOT NULL,
+	FOREIGN KEY (list_id) REFERENCES lists (id)
+	FOREIGN KEY (detail_id) REFERENCES details (id)
+);

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Detail: {{ detail['name'] }}{% endblock %}</h1>
+{% endblock %}
+	
+{% block main %}
+<form method="post">
+	<label for="name">Name
+		<input id="name" name="name" value="{{ request.form['name'] or detail['name'] }}" autofocus required>
+	</label>
+	<label for="description">Description
+		<input id="description" name="description" value="{{ request.form['name'] or detail['description'] }}">
+	</label>
+	<input type="submit" value="Save">
+</form>
+<hr>
+<form method="post" action="{{ url_for('details.delete', id=detail['id']) }}">
+	<input type="submit" value="Delete">
+</form>
+{% endblock %}
+
