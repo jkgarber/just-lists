@@ -9,7 +9,7 @@
 <article>
 	<h2>{{ list['name'] }}</h2>
 	<p>{{ list['description'] }}</p>
-	<p><b>Created: </b>{{ list['created'].strftime('%d.%m.%Y') }}</p>
+	<p><b>Created: </b>{{ list['created'].strftime('%d.%m.%Y') }} | <a href="{{ url_for('lists.edit', id=list['id']) }}">Edit</a></p>
 </article>
 {% endfor %}
 {% endblock %}
