@@ -43,6 +43,7 @@ CREATE TABLE lists (
 	creator_id INTEGER NOT NULL,
 	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	name TEXT NOT NULL,
+	description TEXT,
 	FOREIGN KEY (creator_id) REFERENCES users (id)
 );
 
