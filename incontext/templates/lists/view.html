@@ -2,30 +2,54 @@
 
 {% block header %}
 <h1>{% block title %}List: {{ list['name'] }}{% endblock %}</h1>
-<a href="{{ url_for('lists.new_item', id=list['id']) }}">New</a>
 {% endblock %}
 {% block main %}
+<section id="items">
+	<h2>Items</h2>
 {% if items|length == 0 %}
-<p>Empty</p>
+	<p>Empty</p>
+	<a href="{{ url_for('lists.new_item', id=list['id']) }}">New Item</a>
+</section>
 {% else %}
-
-<section>
+	<a href="{{ url_for('lists.new_item', id=list['id']) }}">New Item</a>
 	<table class="item-table">
 		<tr>
 			<th>ID</th>
 			<th>Name</th>
+			{% for detail in details %}
+			<th>{{ detail['name'] }}</th>
+			{% endfor %}
 			<th>Created</th>
 		</tr>
 		{% for item in items %}
 		<tr>
 			<td>{{ item['id'] }}</td>
 			<td>{{ item['name'] }}</td>
+			{% for detail in item['details'] %}
+			<td>{{ detail['content'] }}</td>
+			{% endfor %}
 			<td>{{ item['created'].strftime('%d.%m.%Y') }}</td>
 			<td><a href="{{ url_for('lists.view_item', id=list['id'], item_id=item['id']) }}">View</a></td>
 			<td><a href="{{ url_for('lists.edit_item', id=list['id'], item_id=item['id']) }}">Edit</a></td>
 		</tr>
 		{% endfor %}
 	</table>
+</section>
+{% endif %}
+<section id="details">
+	<h2>Details</h2>
+{% if details|length == 0 %}
+	<p>Empty</p>
+	<a href="{{ url_for('lists.new_detail', id=list['id']) }}">New Detail</a>
+</section>
+{% else %}
+	<a href="{{ url_for('lists.new_detail', id=list['id']) }}">New Detail</a>
+	<dl>
+		{% for detail in details %}
+		<dt><b>{{ detail['name'] }}</b> <a href="{{ url_for('lists.edit_detail', id=list['id'], detail_id=detail['id']) }}">Edit</a></dt>
+		<dd>{{ detail['description'] }}</dd>
+		{% endfor %}
+	</dl>
 </section>
 {% endif %}
 {% endblock %}

@@ -43,8 +43,9 @@ def create():
 @login_required
 def view(id):
     list = get_list(id)
-    items = get_list_items(id)
-    return render_template('lists/view.html', items=items, list=list)
+    items = get_list_items_with_details(id, True)
+    details = get_list_details(id)
+    return render_template('lists/view.html', list=list, items=items, details=details)
 
 
 @bp.route('/<int:id>/edit', methods=('GET', 'POST'))
@@ -173,6 +174,69 @@ def delete_item(id, item_id):
     return redirect(url_for('lists.view', id=id))
 
 
+@bp.route('/<int:id>/details/new', methods=('GET', 'POST'))
+@login_required
+def new_detail(id):
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        error = None
+        if not name:
+            error = 'Name is required.'
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            cur = db.cursor()
+            cur.execute(
+                'INSERT INTO details (name, description, creator_id)'
+                ' VALUES (?, ?, ?)',
+                (name, description, g.user['id'])
+            )
+            detail_id = cur.lastrowid
+            cur.execute(
+                'INSERT INTO list_detail_relations (list_id, detail_id)'
+                ' VALUES (?, ?)',
+                (id, detail_id)
+            )
+            list_items = get_list_items(id)
+            data = [(item['id'], detail_id, '') for item in list_items]
+            cur.executemany(
+                'INSERT INTO item_detail_relations (item_id, detail_id, content)'
+                'VALUES (?, ?, ?)',
+                data
+            )
+            db.commit()
+            return redirect(url_for('lists.view', id=id))
+    list = get_list(id)
+    return render_template('lists/details/new.html', list=list)
+
+
+@bp.route('/<int:id>/details/<int:detail_id>/edit', methods=('GET','POST'))
+@login_required
+def edit_detail(id, item_id):
+    list = get_list(id)
+    detail = get_list_detail(id, detail_id)
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        error = None
+        if not name:
+            error = 'Name is required.'
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            db.execute(
+                'UPDATE details SET name = ?, description = ?'
+                ' WHERE id = ?',
+                (name, description, detail_id)
+            )
+            db.commit()
+            return redirect(url_for('lists.view', id=id))
+    return render_template('lists/details/edit.html', list=list, detail=detail)
+
+
 def get_user_lists():
     db = get_db()
     user_lists = db.execute(
@@ -200,20 +264,67 @@ def get_list(id, check_creator=True):
     return list
     
 
-def get_list_items(id, check_creator=True):
+def get_list_items_with_details(id, check_creator=True):
     if check_creator:
         list_creator_id = get_list_creator_id(id)
         if list_creator_id != g.user['id']:
             abort(403)
     db = get_db()
-    list_items = db.execute(
+    items = db.execute(
         'SELECT i.id, i.name, i.created'
         ' FROM items i'
         ' JOIN list_item_relations r ON r.item_id = i.id'
         ' WHERE r.list_id = ?',
         (id,)
     ).fetchall()
+    details = db.execute(
+        'SELECT d.id, d.name, d.description'
+        ' FROM details d'
+        ' JOIN list_detail_relations r ON r.detail_id = d.id'
+        ' WHERE r.list_id = ?',
+        (id,)
+    ).fetchall()
+    item_ids = [item['id'] for item in items]
+    placeholders = f'{"?, " * len(item_ids)}'[:-2]
+    relations = db.execute(
+        'SELECT r.item_id, r.detail_id, r.content'
+        ' FROM item_detail_relations r'
+        f' WHERE r.item_id IN ({placeholders})',
+        item_ids
+    ).fetchall()
+    list_items = []
+    for item in items:
+        this_item = {}
+        this_item['id'] = item['id']
+        this_item['name'] = item['name']
+        this_item['created'] = item['created']
+        this_item['details'] = []
+        for detail in details:
+            this_detail = {}
+            this_detail['name'] = detail['name']
+            for relation in relations:
+                if relation['item_id'] == item['id'] and relation['detail_id'] == detail['id']:
+                    this_detail['content'] = relation['content']
+            this_item['details'].append(this_detail)
+        list_items.append(this_item)
     return list_items
+
+
+def get_list_items(id, check_creator=True):
+    if check_creator:
+        list_creator_id = get_list_creator_id(id)
+        if list_creator_id != g.user['id']:
+            abort(403)
+    db = get_db()
+    items = db.execute(
+        'SELECT i.id, i.name, i.created'
+        ' FROM items i'
+        ' JOIN list_item_relations r ON r.item_id = i.id'
+        ' WHERE r.list_id = ?',
+        (id,)
+    ).fetchall()
+    return items
+
 
 
 def get_list_item(id, item_id, check_relation=True):
@@ -247,5 +358,45 @@ def get_item_list_id(item_id):
         'SELECT r.list_id FROM list_item_relations r'
         ' WHERE r.item_id = ?',
         (item_id,)
+    ).fetchone()['list_id']
+    return list_id
+
+
+def get_list_details(id, check_creator=True):
+    if check_creator:
+        list_creator_id = get_list_creator_id(id)
+        if list_creator_id != g.user['id']:
+            abort(403)
+    db = get_db()
+    list_details = db.execute(
+        'SELECT d.id, d.name, d.description'
+        ' FROM details d'
+        ' JOIN list_detail_relations r ON r.detail_id = d.id'
+        ' WHERE r.list_id = ?',
+        (id,)
+    ).fetchall()
+    return list_details
+
+
+def get_list_detail(id, detail_id, check_relation=True):
+    if check_relation:
+        detail_list_id = get_detail_list_id(item_id)
+        if detail_list_id != id:
+            abort(400)
+    db = get_db()
+    list_detail = db.execute(
+        'SELECT d.id, d.name, d.description'
+        ' FROM details d'
+        ' WHERE d.id = ?',
+        (detail_id,)
+    ).fetchone()
+    return list_detail
+
+
+def get_detail_list_id(detail_id):
+    list_id = get_db().execute(
+        'SELECT r.list_id FROM list_detail_relations r'
+        ' WHERE r.detail_id = ?',
+        (detail_id,)
     ).fetchone()['list_id']
     return list_id
