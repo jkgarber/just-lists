@@ -2,6 +2,10 @@
 
 {% block header %}
 <h1>{% block title %}Item: {{ item['name'] }}{% endblock %}</h1>
+<ul>
+	<li><b>List Name</b>: {{ list['name'] }}</li>
+	<li><b>List Description</b>: {{ list['description'] }}</li>
+</ul>
 {% endblock %}
 	
 {% block main %}
@@ -9,16 +13,10 @@
 	<label for="name">Name
 		<input id="name" name="name" value="{{ request.form['name'] or item['name'] }}" required> <!-- When the form hasn't been submitted, the original `agent` data appears, but if invalid form data was posted it will be displayed so that the user can fix the error. -->
 	</label>
-	{% for detail in details %}
-	{% set detail_id = detail['id']|string %}
-	<label for="{{ detail['name'] }}">{{ detail['name'] }}
-		<textarea id="{{ detail['name'] }}" name="{{ detail_id }}">{{ request.form[detail_id] or detail['content'] }}</textarea>
-	</label>
-	{% endfor %}
 	<input type="submit" value="Save">
 </form>
 <hr>
-<form method="post" action="{{ url_for('items.delete', id=item['id']) }}">
+<form method="post" action="{{ url_for('lists.delete_item', id=list['id'], item_id=item['id']) }}">
 	<input type="submit" value="Delete">
 </form>
 {% endblock %}

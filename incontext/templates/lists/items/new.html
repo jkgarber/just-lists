@@ -1,16 +1,14 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}New Detail{% endblock %}</h1>
+<h1>{% block title %}New Item - {{ list['name'] }}{% endblock %}</h1>
+<p>{{ list['description'] }}</p>
 {% endblock %}
 
 {% block main %}
 <form method="post">
 	<label for="name">Name
 		<input name="name" id="name" value="{{ request.form['name'] }}" autofocus required>
-	</label>
-	<label for="description">Description
-		<input name="description" id="description" value="{{ request.form['description'] }}">
 	</label>
 	<input type="submit" value="Save">
 </form>

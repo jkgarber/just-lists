@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}List: {{ list['name'] }}{% endblock %}</h1>
+<a href="{{ url_for('lists.new_item', id=list['id']) }}">New</a>
+{% endblock %}
+{% block main %}
+{% if items|length == 0 %}
+<p>Empty</p>
+{% else %}
+
+<section>
+	<table class="item-table">
+		<tr>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Created</th>
+		</tr>
+		{% for item in items %}
+		<tr>
+			<td>{{ item['id'] }}</td>
+			<td>{{ item['name'] }}</td>
+			<td>{{ item['created'].strftime('%d.%m.%Y') }}</td>
+			<td><a href="{{ url_for('lists.view_item', id=list['id'], item_id=item['id']) }}">View</a></td>
+			<td><a href="{{ url_for('lists.edit_item', id=list['id'], item_id=item['id']) }}">Edit</a></td>
+		</tr>
+		{% endfor %}
+	</table>
+</section>
+{% endif %}
+{% endblock %}
