@@ -24,9 +24,17 @@
 		{% for item in items %}
 		<tr>
 			<td>{{ item['id'] }}</td>
+			{% if item['name']|length > 30 %}
+			<td>{{ item['name']|truncate(30,false,'...') }}</td>
+			{% else %}
 			<td>{{ item['name'] }}</td>
+			{% endif %}
 			{% for detail in item['details'] %}
+			{% if detail['content']|length > 30 %}
+			<td>{{ detail['content']|truncate(30,false,'...') }}</td>
+			{% else %}
 			<td>{{ detail['content'] }}</td>
+			{% endif %}
 			{% endfor %}
 			<td>{{ item['created'].strftime('%d.%m.%Y') }}</td>
 			<td><a href="{{ url_for('lists.view_item', id=list['id'], item_id=item['id']) }}">View</a></td>

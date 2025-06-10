@@ -13,6 +13,11 @@
 	<label for="name">Name
 		<input id="name" name="name" value="{{ request.form['name'] or item['name'] }}" required> <!-- When the form hasn't been submitted, the original `agent` data appears, but if invalid form data was posted it will be displayed so that the user can fix the error. -->
 	</label>
+	{% for detail in details %}
+	<label for="{{ detail['id'] }}">{{ detail['name'] }}
+		<textarea id="{{ detail['id'] }}" name="{{ detail['id'] }}">{{ request.form[detail['id']] or detail['content'] }}</textarea>
+	</label>
+	{% endfor %}
 	<input type="submit" value="Save">
 </form>
 <hr>
