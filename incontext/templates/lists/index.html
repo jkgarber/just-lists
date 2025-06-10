@@ -2,6 +2,9 @@
 
 {% block header %}
 <h1>{% block title %}Lists{% endblock %}</h1>
+{% if lists|length == 0 %}
+<p>Empty</p>
+{% endif %}
 <p><a href="{{ url_for('lists.create') }}">New</a></p>
 {% endblock %}
 {% block main %}

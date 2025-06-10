@@ -2,6 +2,7 @@
 
 {% block header %}
 <h1>{% block title %}List: {{ list['name'] }}{% endblock %}</h1>
+<p>{{ list['description'] }} <a href="{{ url_for('lists.edit', id=list['id']) }}">Edit</a></p>
 {% endblock %}
 {% block main %}
 <section id="items">
