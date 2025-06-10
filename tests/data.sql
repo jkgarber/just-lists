@@ -8,20 +8,31 @@ VALUES
 	(2, 'item name 1'),
 	(2, 'item name 2'),
 	(2, 'item name 3'),
-	(3, 'item name 4');
+	(3, 'item name 4'),
+	(3, 'item name 5'),
+	(3, 'item name 6');
 
 INSERT INTO details (creator_id, name, description)
 VALUES
 	(2, 'detail name 1', 'detail description 1'),
 	(2, 'detail name 2', 'detail description 2'),
 	(2, 'detail name 3', 'detail description 3'),
-	(3, 'detail name 4', 'detail description 4');
+	(3, 'detail name 4', 'detail description 4'),
+	(3, 'detail name 5', 'detail description 5'),
+	(3, 'detail name 6', 'detail description 6');
 
 INSERT INTO item_detail_relations (item_id, detail_id, content)
 VALUES
 	(1, 1, 'relation content 1'),
-	(2, 1, 'relation content 2'),
-	(3, 2, 'relation content 3');
+	(1, 2, 'relation content 2'),
+	(2, 1, 'relation content 3'),
+	(2, 2, 'relation content 4'),
+	(3, 3, 'relation content 5'),
+	(4, 4, 'relation content 6'),
+	(4, 5, 'relation content 7'),
+	(5, 4, 'relation content 8'),
+	(5, 5, 'relation content 9'),
+	(6, 6, 'relation content 10');
 
 INSERT INTO lists (creator_id, name, description)
 VALUES
