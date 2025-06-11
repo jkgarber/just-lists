@@ -496,3 +496,34 @@ def test_edit_item(client, auth, app):
     # item must exist
     assert client.get('lists/1/items/7/edit').status_code == 404
 
+
+def test_delete_item(client, auth, app):
+    # user must be logged in
+    response = client.post('/lists/1/items/1/delete')
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/auth/login'
+    # user must have permission
+    auth.login('other', 'other')
+    assert client.post('/lists/1/items/1/delete').status_code == 403
+    auth.login()
+    with app.app_context():
+        db = get_db()
+        items_before = db.execute('SELECT id, name FROM items').fetchall()
+        contents_before = db.execute('SELECT content FROM item_detail_relations').fetchall()
+        relations_before = db.execute('SELECT list_id, item_id FROM list_item_relations').fetchall()
+        response = client.post('/lists/1/items/1/delete')
+        items_after = db.execute('SELECT id, name FROM items').fetchall()
+        contents_after = db.execute('SELECT content FROM item_detail_relations').fetchall()
+        relations_after = db.execute('SELECT list_id, item_id FROM list_item_relations').fetchall()
+        # only the affected item gets deleted
+        assert items_after == items_before[1:]
+        # only the affected detail relations get deleted
+        assert contents_after == contents_before[2:]
+        # only the affected list relation gets deleted
+        assert relations_after == relations_before[1:]
+    # redirected to list
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/lists/1/view'
+    # item must exist
+    response = client.post('lists/1/items/7/delete')
+    assert response.status_code == 404

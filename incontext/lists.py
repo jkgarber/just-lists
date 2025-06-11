@@ -310,7 +310,7 @@ def get_list(id, check_creator=True):
         (id,)
     ).fetchone()
     if list is None:
-        abort(404, f'List with id {id} does not exist.')
+        abort(404)
     if check_creator:
         list_creator_id = list['creator_id']
         if list_creator_id != g.user['id']:
@@ -422,7 +422,7 @@ def get_item_list_id(item_id):
     ).fetchone()
     if list_id:
         return list_id['list_id']
-    abort(404, f'No lists found with item with id "{item_id}"')
+    abort(404)
 
 
 def get_list_details(id, check_creator=True):
