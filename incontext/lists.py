@@ -303,10 +303,6 @@ def get_user_lists():
 
 
 def get_list(id, check_creator=True):
-    if check_creator:
-        list_creator_id = get_list_creator_id(id)
-        if list_creator_id != g.user['id']:
-            abort(403)
     list = get_db().execute(
         'SELECT l.id, l.name, l.description, l.creator_id'
         ' FROM lists l'
@@ -315,6 +311,10 @@ def get_list(id, check_creator=True):
     ).fetchone()
     if list is None:
         abort(404, f'List with id {id} does not exist.')
+    if check_creator:
+        list_creator_id = list['creator_id']
+        if list_creator_id != g.user['id']:
+            abort(403)
     return list
     
 
@@ -419,8 +419,10 @@ def get_item_list_id(item_id):
         'SELECT r.list_id FROM list_item_relations r'
         ' WHERE r.item_id = ?',
         (item_id,)
-    ).fetchone()['list_id']
-    return list_id
+    ).fetchone()
+    if list_id:
+        return list_id['list_id']
+    abort(404, f'No lists found with item with id "{item_id}"')
 
 
 def get_list_details(id, check_creator=True):
