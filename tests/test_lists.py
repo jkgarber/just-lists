@@ -527,3 +527,51 @@ def test_delete_item(client, auth, app):
     # item must exist
     response = client.post('lists/1/items/7/delete')
     assert response.status_code == 404
+
+
+def test_new_detail(client, auth, app):
+    # user must be logged in
+    response = client.get('/lists/1/details/new')
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/auth/login'
+    auth.login()
+    response = client.get('/lists/1/details/new')
+    assert response.status_code == 200
+    # user must have permission
+    auth.login('other', 'other')
+    assert client.get('/lists/1/details/new').status_code == 403
+    assert client.post('/lists/1/details/new').status_code == 403
+    auth.login()
+    response = client.get('/lists/1/details/new')
+    assert response.status_code == 200
+    # data validation
+    response = client.post('/lists/1/details/new',
+        data={'name': '', 'description': ''}
+    )
+    assert b'Name is required' in response.data
+    with app.app_context():
+        db = get_db()
+        details_before = db.execute('SELECT * FROM details').fetchall()
+        rels_before = db.execute('SELECT * FROM list_detail_relations').fetchall()
+        response = client.post('/lists/1/details/new',
+            data={
+                'name': 'detail name 7',
+                'description': 'detail description 7'
+            }
+        )
+        details_after = db.execute('SELECT * FROM details').fetchall()
+        rels_after = db.execute('SELECT * FROM list_detail_relations').fetchall()
+        assert details_after[-1]['name'] == 'detail name 7'
+        assert details_after[-1]['description'] == 'detail description 7'
+        assert details_after[:-1] == details_before
+        assert rels_after[:-1] == rels_before
+        assert rels_after[-1]['list_id'] == 1
+        details = db.execute(
+            'SELECT name FROM details d'
+            ' JOIN list_detail_relations r'
+            ' ON r.detail_id = d.id'
+            ' WHERE r.list_id = 1'
+        ).fetchall()
+        assert details[-1]['name'] == 'detail name 7'
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/lists/1/view'

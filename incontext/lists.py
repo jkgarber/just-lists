@@ -218,6 +218,7 @@ def delete_item(id, item_id):
 @bp.route('/<int:id>/details/new', methods=('GET', 'POST'))
 @login_required
 def new_detail(id):
+    the_list = get_list(id)
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
@@ -249,8 +250,7 @@ def new_detail(id):
             )
             db.commit()
             return redirect(url_for('lists.view', id=id))
-    list = get_list(id)
-    return render_template('lists/details/new.html', list=list)
+    return render_template('lists/details/new.html', list=the_list)
 
 
 @bp.route('/<int:id>/details/<int:detail_id>/edit', methods=('GET','POST'))
