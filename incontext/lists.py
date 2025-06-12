@@ -457,11 +457,12 @@ def get_list_detail(id, detail_id, check_relation=True):
 
 
 def get_detail_list_id(detail_id):
-    print(f'detail id: {detail_id}')
     list_id = get_db().execute(
         'SELECT r.list_id'
         ' FROM list_detail_relations r'
         ' WHERE r.detail_id = ?',
         (detail_id,)
-    ).fetchone()['list_id']
-    return list_id
+    ).fetchone()
+    if list_id:
+        return list_id['list_id']
+    abort(404)
