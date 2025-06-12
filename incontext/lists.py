@@ -39,19 +39,19 @@ def create():
     return render_template('lists/create.html')
 
 
-@bp.route('/<int:id>/view')
+@bp.route('/<int:list_id>/view')
 @login_required
-def view(id):
-    list = get_list(id)
-    items = get_list_items_with_details(id, True)
-    details = get_list_details(id)
-    return render_template('lists/view.html', list=list, items=items, details=details)
+def view(list_id):
+    alist = get_list(list_id)
+    items = get_list_items_with_details(list_id, True)
+    details = get_list_details(list_id)
+    return render_template('lists/view.html', alist=alist, items=items, details=details)
 
 
-@bp.route('/<int:id>/edit', methods=('GET', 'POST'))
+@bp.route('/<int:list_id>/edit', methods=('GET', 'POST'))
 @login_required
-def edit(id):
-    list = get_list(id)
+def edit(list_id):
+    alist = get_list(list_id)
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
@@ -65,56 +65,56 @@ def edit(id):
             db.execute(
                 'UPDATE lists SET name = ?, description = ?'
                 ' WHERE id = ?',
-                (name, description, id)
+                (name, description, list_id)
             )
             db.commit()
             return redirect(url_for('lists.index'))
-    return render_template('lists/edit.html', list=list)
+    return render_template('lists/edit.html', alist=alist)
 
 
-@bp.route('/<int:id>/delete', methods=('POST',))
+@bp.route('/<int:list_id>/delete', methods=('POST',))
 @login_required
-def delete(id):
-    get_list(id)
+def delete(list_id):
+    get_list(list_id)
     db = get_db()
     # Delete list-related details
     db.execute(
         'DELETE FROM details'
         ' WHERE id IN'
         ' (SELECT detail_id FROM list_detail_relations WHERE list_id = ?)',
-        (id,)
+        (list_id,)
     )
     # Delete list-related items
     db.execute(
         'DELETE FROM items'
         ' WHERE id IN'
         ' (SELECT item_id FROM list_item_relations WHERE list_id = ?)',
-        (id,)
+        (list_id,)
     )
     # Delete item-detail relations
     db.execute(
         'DELETE FROM item_detail_relations'
         ' WHERE item_id IN'
         ' (SELECT item_id FROM list_item_relations WHERE list_id = ?)',
-        (id,)
+        (list_id,)
     )
     # Delete list-item relations
-    db.execute('DELETE FROM list_item_relations WHERE list_id = ?',(id,))
+    db.execute('DELETE FROM list_item_relations WHERE list_id = ?',(list_id,))
     # Delete list-detail relations
-    db.execute('DELETE FROM list_detail_relations WHERE list_id = ?', (id,))
+    db.execute('DELETE FROM list_detail_relations WHERE list_id = ?', (list_id,))
     # Delete list
-    db.execute('DELETE FROM lists WHERE id = ?', (id,))
+    db.execute('DELETE FROM lists WHERE id = ?', (list_id,))
     db.commit()
     return redirect(url_for('lists.index'))
 
 
-@bp.route('/<int:id>/items/new', methods=('GET', 'POST'))
+@bp.route('/<int:list_id>/items/new', methods=('GET', 'POST'))
 @login_required
-def new_item(id):
+def new_item(list_id):
     if request.method == 'POST':
         name = request.form['name']
         detail_fields = []
-        details = get_list_details(id)
+        details = get_list_details(list_id)
         for detail in details:
             detail_id = detail['id']
             detail_content = request.form[str(detail_id)]
@@ -136,7 +136,7 @@ def new_item(id):
             cur.execute(
                 'INSERT INTO list_item_relations (list_id, item_id)'
                 ' VALUES (?, ?)',
-                (id, item_id)
+                (list_id, item_id)
             )
             relations = []
             for field in detail_fields:
@@ -147,29 +147,29 @@ def new_item(id):
                 relations
             )
             db.commit()
-            return redirect(url_for('lists.view', id=id))
-    list = get_list(id)
-    details = get_list_details(id)
-    return render_template('lists/items/new.html', list=list, details=details)
+            return redirect(url_for('lists.view', list_id=list_id))
+    alist = get_list(list_id)
+    details = get_list_details(list_id)
+    return render_template('lists/items/new.html', alist=alist, details=details)
 
 
-@bp.route('/<int:id>/items/<int:item_id>/view')
+@bp.route('/<int:list_id>/items/<int:item_id>/view')
 @login_required
-def view_item(id, item_id):
-    list = get_list(id)
-    item, details = get_list_item(id, item_id)
-    return render_template('lists/items/view.html', list=list, item=item, details=details)
+def view_item(list_id, item_id):
+    alist = get_list(list_id)
+    item, details = get_list_item(list_id, item_id)
+    return render_template('lists/items/view.html', alist=alist, item=item, details=details)
 
 
-@bp.route('/<int:id>/items/<int:item_id>/edit', methods=('GET','POST'))
+@bp.route('/<int:list_id>/items/<int:item_id>/edit', methods=('GET','POST'))
 @login_required
-def edit_item(id, item_id):
-    list = get_list(id)
-    item, details = get_list_item(id, item_id)
+def edit_item(list_id, item_id):
+    alist = get_list(list_id)
+    item, details = get_list_item(list_id, item_id)
     if request.method == 'POST':
         name = request.form['name']
         detail_fields = []
-        details = get_list_details(id)
+        details = get_list_details(list_id)
         for detail in details:
             detail_id = detail['id']
             detail_content = request.form[str(detail_id)]
@@ -194,31 +194,31 @@ def edit_item(id, item_id):
                 detail_fields
             )
             db.commit()
-            return redirect(url_for('lists.view', id=id))
-    return render_template('lists/items/edit.html', list=list, item=item, details=details)
+            return redirect(url_for('lists.view', list_id=list_id))
+    return render_template('lists/items/edit.html', alist=alist, item=item, details=details)
 
 
-@bp.route('<int:id>/items/<int:item_id>/delete', methods=('POST',))
+@bp.route('<int:list_id>/items/<int:item_id>/delete', methods=('POST',))
 @login_required
-def delete_item(id, item_id):
-    list = get_list(id)
-    item, details = get_list_item(id, item_id)
+def delete_item(list_id, item_id):
+    alist = get_list(list_id)
+    item, details = get_list_item(list_id, item_id)
     db = get_db()
     db.execute('DELETE FROM items WHERE id = ?', (item_id,))
     db.execute('DELETE FROM item_detail_relations WHERE item_id = ?', (item_id,))
     db.execute(
         'DELETE from list_item_relations'
         ' WHERE list_id = ? AND item_id = ?',
-        (id, item_id)
+        (list_id, item_id)
     )
     db.commit()
-    return redirect(url_for('lists.view', id=id))
+    return redirect(url_for('lists.view', list_id=list_id))
 
 
-@bp.route('/<int:id>/details/new', methods=('GET', 'POST'))
+@bp.route('/<int:list_id>/details/new', methods=('GET', 'POST'))
 @login_required
-def new_detail(id):
-    the_list = get_list(id)
+def new_detail(list_id):
+    alist = get_list(list_id)
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
@@ -239,9 +239,9 @@ def new_detail(id):
             cur.execute(
                 'INSERT INTO list_detail_relations (list_id, detail_id)'
                 ' VALUES (?, ?)',
-                (id, detail_id)
+                (list_id, detail_id)
             )
-            list_items = get_list_items(id)
+            list_items = get_list_items(list_id)
             data = [(item['id'], detail_id, '') for item in list_items]
             cur.executemany(
                 'INSERT INTO item_detail_relations (item_id, detail_id, content)'
@@ -249,15 +249,15 @@ def new_detail(id):
                 data
             )
             db.commit()
-            return redirect(url_for('lists.view', id=id))
-    return render_template('lists/details/new.html', list=the_list)
+            return redirect(url_for('lists.view', list_id=list_id))
+    return render_template('lists/details/new.html', alist=alist)
 
 
-@bp.route('/<int:id>/details/<int:detail_id>/edit', methods=('GET','POST'))
+@bp.route('/<int:list_id>/details/<int:detail_id>/edit', methods=('GET','POST'))
 @login_required
-def edit_detail(id, detail_id):
-    list = get_list(id)
-    detail = get_list_detail(id, detail_id)
+def edit_detail(list_id, detail_id):
+    alist = get_list(list_id)
+    detail = get_list_detail(list_id, detail_id)
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
@@ -274,21 +274,21 @@ def edit_detail(id, detail_id):
                 (name, description, detail_id)
             )
             db.commit()
-            return redirect(url_for('lists.view', id=id))
-    return render_template('lists/details/edit.html', list=list, detail=detail)
+            return redirect(url_for('lists.view', list_id=list_id))
+    return render_template('lists/details/edit.html', alist=alist, detail=detail)
 
 
-@bp.route('/<int:id>/details/<int:detail_id>/delete', methods=('POST',))
+@bp.route('/<int:list_id>/details/<int:detail_id>/delete', methods=('POST',))
 @login_required
-def delete_detail(id, detail_id):
-    list = get_list(id)
-    detail = get_list_detail(id, detail_id)
+def delete_detail(list_id, detail_id):
+    alist = get_list(list_id)
+    detail = get_list_detail(list_id, detail_id)
     db = get_db()
     db.execute('DELETE FROM details WHERE id = ?', (detail_id,))
     db.execute('DELETE FROM item_detail_relations WHERE detail_id = ?', (detail_id,))
     db.execute('DELETE FROM list_detail_relations WHERE detail_id = ?', (detail_id,))
     db.commit()
-    return redirect(url_for('lists.view', id=id))
+    return redirect(url_for('lists.view', list_id=list_id))
 
 
 def get_user_lists():
@@ -302,25 +302,25 @@ def get_user_lists():
     return user_lists
 
 
-def get_list(id, check_creator=True):
-    list = get_db().execute(
+def get_list(list_id, check_creator=True):
+    alist = get_db().execute(
         'SELECT l.id, l.name, l.description, l.creator_id'
         ' FROM lists l'
         ' WHERE l.id = ?',
-        (id,)
+        (list_id,)
     ).fetchone()
-    if list is None:
+    if alist is None:
         abort(404)
     if check_creator:
-        list_creator_id = list['creator_id']
+        list_creator_id = alist['creator_id']
         if list_creator_id != g.user['id']:
             abort(403)
-    return list
+    return alist
     
 
-def get_list_items_with_details(id, check_creator=True):
+def get_list_items_with_details(list_id, check_creator=True):
     if check_creator:
-        list_creator_id = get_list_creator_id(id)
+        list_creator_id = get_list_creator_id(list_id)
         if list_creator_id != g.user['id']:
             abort(403)
     db = get_db()
@@ -329,14 +329,14 @@ def get_list_items_with_details(id, check_creator=True):
         ' FROM items i'
         ' JOIN list_item_relations r ON r.item_id = i.id'
         ' WHERE r.list_id = ?',
-        (id,)
+        (list_id,)
     ).fetchall()
     details = db.execute(
         'SELECT d.id, d.name, d.description'
         ' FROM details d'
         ' JOIN list_detail_relations r ON r.detail_id = d.id'
         ' WHERE r.list_id = ?',
-        (id,)
+        (list_id,)
     ).fetchall()
     item_ids = [item['id'] for item in items]
     placeholders = f'{"?, " * len(item_ids)}'[:-2]
@@ -364,9 +364,9 @@ def get_list_items_with_details(id, check_creator=True):
     return list_items
 
 
-def get_list_items(id, check_creator=True):
+def get_list_items(list_id, check_creator=True):
     if check_creator:
-        list_creator_id = get_list_creator_id(id)
+        list_creator_id = get_list_creator_id(list_id)
         if list_creator_id != g.user['id']:
             abort(403)
     db = get_db()
@@ -375,16 +375,15 @@ def get_list_items(id, check_creator=True):
         ' FROM items i'
         ' JOIN list_item_relations r ON r.item_id = i.id'
         ' WHERE r.list_id = ?',
-        (id,)
+        (list_id,)
     ).fetchall()
     return items
 
 
-
-def get_list_item(id, item_id, check_relation=True):
+def get_list_item(list_id, item_id, check_relation=True):
     if check_relation:
         item_list_id = get_item_list_id(item_id)
-        if item_list_id != id:
+        if item_list_id != list_id:
             abort(400)
     db = get_db()
     item = db.execute(
@@ -425,9 +424,9 @@ def get_item_list_id(item_id):
     abort(404)
 
 
-def get_list_details(id, check_creator=True):
+def get_list_details(list_id, check_creator=True):
     if check_creator:
-        list_creator_id = get_list_creator_id(id)
+        list_creator_id = get_list_creator_id(list_id)
         if list_creator_id != g.user['id']:
             abort(403)
     db = get_db()
@@ -436,15 +435,15 @@ def get_list_details(id, check_creator=True):
         ' FROM details d'
         ' JOIN list_detail_relations r ON r.detail_id = d.id'
         ' WHERE r.list_id = ?',
-        (id,)
+        (list_id,)
     ).fetchall()
     return list_details
 
 
-def get_list_detail(id, detail_id, check_relation=True):
+def get_list_detail(list_id, detail_id, check_relation=True):
     if check_relation:
         detail_list_id = get_detail_list_id(detail_id)
-        if detail_list_id != id:
+        if detail_list_id != list_id:
             abort(400)
     db = get_db()
     list_detail = db.execute(

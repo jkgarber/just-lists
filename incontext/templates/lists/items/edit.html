@@ -3,8 +3,8 @@
 {% block header %}
 <h1>{% block title %}Item: {{ item['name'] }}{% endblock %}</h1>
 <ul>
-	<li><b>List Name</b>: {{ list['name'] }}</li>
-	<li><b>List Description</b>: {{ list['description'] }}</li>
+	<li><b>List Name</b>: {{ alist['name'] }}</li>
+	<li><b>List Description</b>: {{ alist['description'] }}</li>
 </ul>
 {% endblock %}
 	
@@ -21,7 +21,7 @@
 	<input type="submit" value="Save">
 </form>
 <hr>
-<form method="post" action="{{ url_for('lists.delete_item', id=list['id'], item_id=item['id']) }}">
+<form method="post" action="{{ url_for('lists.delete_item', list_id=alist['id'], item_id=item['id']) }}">
 	<input type="submit" value="Delete">
 </form>
 {% endblock %}
